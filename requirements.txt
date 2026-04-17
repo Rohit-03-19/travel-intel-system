@@ -1,0 +1,23 @@
+#Web Framework
+fastapi
+uvicorn
+python-dotenv
+
+#AI & Agents(Core)
+langchain
+langchain-openai
+langgraph
+tavily-python
+
+#Data & Validation 
+pydantic
+pydantic-settings
+sqlalchemy
+psycopg2-binary
+
+#Tools & Scrappers
+playwright
+beautifulsoup4
+
+#Observability
+langsmith
