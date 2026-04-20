@@ -1,41 +1,74 @@
+import os
+import datetime
+from dotenv import load_dotenv
+from langchain_community.tools.tavily_search import TavilySearchResults
+from langchain_groq import ChatGroq
+from app.core.config import settings
 from app.agents.state import AgentState
 from app.core.logging import logger
-from app.tools.search_tool import search_real_reviews
-from langchain_openai import ChatOpenAI
-from app.core.config import settings
 
-# Initialize LLM
-llm = ChatOpenAI(model="gpt-4o", api_key=settings.OPENAI_API_KEY)
+# 1. Environment Variables load karo (.env file se)
+load_dotenv()
+
+# 2. Modern Search Tool Setup
+# Isse wo 'deprecated' wali warning khatam ho jayegi
+search_tool = TavilySearchResults(max_results=5)
 
 def researcher_node(state: AgentState):
-    destination = state.get("destination", "the destination")
-    logger.info(f"--- RESEARCHING REALITY FOR: {destination} ---")
+    logger.info("--- Executing Balanced & Spiritual Researcher Node ---")
     
-    # 1. Real-time Search (Looking for dirt/reality)
-    search_query = f"current situation and honest traveler reviews for {destination} construction crowd scams safety April 2026"
-    raw_results = search_real_reviews(search_query)
+    current_date = datetime.datetime.now().strftime("%B %d, %Y")
+    destination = state["destination"]
     
-    # 2. Senior Critic Analysis
-    prompt = f"""
-    You are a highly experienced, cynical travel journalist known for exposing the 'Influencer vs Reality' gap.
-    Analyze the following search data for {destination}:
+    # 3. Smart Search Query
+    # Hum queries mein 'aura' aur 'significance' jaise words add kar rahe hain 
+    # taaki LLM ko positive context bhi mile.
+    search_query = f"current travel situation in {destination} April 2026 spiritual significance aura crowd construction safety"
     
-    SEARCH DATA:
-    {raw_results}
+    try:
+        search_results = search_tool.invoke({"query": search_query})
+    except Exception as e:
+        logger.error(f"Search failed: {e}")
+        search_results = "Search unavailable. Proceeding with general knowledge."
+
+    # 4. The Balanced Advisor Prompt (The Sandwich Method)
+    system_prompt = f"""
+    You are a Senior Travel Intelligence Advisor with deep cultural empathy. 
+    Your mission is to provide a BALANCED briefing for {destination} as of {current_date}.
     
-    YOUR TASKS:
-    1. Identify 'Red Flags': Is there construction? Extreme crowds? Recent scams? Bad weather?
-    2. Influencer vs Reality: What are influencers hiding that real people are complaining about?
-    3. Calculate a 'Trust Score' (1.0 to 10.0) based on how reliable the destination is right now.
+    Follow this EXACT structure to ensure the traveler feels inspired but remains safe:
     
-    Provide a concise, blunt report for the traveler.
+    1. 🌸 THE SOUL & VIBE: 
+       Start with the destination's spiritual or historical aura. Mention local legends, 
+       sacred elements (e.g., sacred trees of Nidhivan, ancient rituals), or the 
+       general positive energy a traveler feels. Make it inviting.
+
+    2. 📊 SEASONAL & CROWD INTELLIGENCE: 
+       Discuss logistics. Weekends vs Weekdays crowds? Seasonal weather 
+       (e.g., heat in April/May). Be practical.
+
+    3. ⚠️ PRACTICAL CONSTRAINTS (GROUND REALITY): 
+       Gently but clearly mention active construction, safety issues, or recent incidents. 
+       Use a factual, non-alarmist tone. ALWAYS mention how a smart traveler can AVOID 
+       these issues (e.g., use authorized guides, avoid boating in monsoon).
+
+    4. 🚩 SMART SCORE & VERDICT: 
+       Provide an 'Ease of Visit' score out of 10. 
+       Conclude with one 'Pro-Tip' for a smooth experience.
+
+    Keep the tone helpful, professional, and culturally respectful.
     """
-    
-    response = llm.invoke(prompt)
-    
-    # Return updated state
+
+    user_message = f"Analyze search data and provide a briefing for {destination}: \n\n {search_results}"
+
+    # 5. LLM Call (Higher temperature for better descriptive writing)
+    llm = ChatGroq(model="llama-3.3-70b-versatile", temperature=0.4, groq_api_key = settings.GROQ_API_KEY) 
+    response = llm.invoke([
+        ("system", system_prompt),
+        ("user", user_message)
+    ])
+
     return {
         "research_reports": [response.content],
-        "trust_scores": {destination: "Analyzed via Web Search"},
-        "next_step": "planner"
+        "trust_scores": {"ease_of_visit": "Calculated in report"}
     }

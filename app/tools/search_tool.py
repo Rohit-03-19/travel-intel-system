@@ -9,5 +9,9 @@ def search_real_reviews(query: str):
     Search depth 'advanced' is used to get high-quality content 
     suitable for LLM analysis.
     """
-    search_result = tavily.search(query=query, search_depth="advanced", max_results=5)
-    return search_result['results']
+    try:
+        search_result = tavily.search(query=query, search_depth="advanced", max_results=5)
+        return search_result['results']
+    except Exception as e:
+        print(f"Error fetching from Tavily: {e}")
+        return []

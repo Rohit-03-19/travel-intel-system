@@ -6,7 +6,7 @@ class Settings(BaseSettings):
     API_V1_STR: str = "/api/v1"
     
     # API Keys (Required)
-    OPENAI_API_KEY: str
+    GROQ_API_KEY: str
     TAVILY_API_KEY: str  # For real-time search
     
     # Optional Keys
